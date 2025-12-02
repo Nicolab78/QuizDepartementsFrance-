@@ -1,20 +1,20 @@
 package com.example.quizdepartementsfrance
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import com.example.quizdepartementsfrance.data.DepartementsData
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+
+        val departements = DepartementsData.getAllDepartements()
+        Log.d("QuizApp", "Nombre total de départements: ${departements.size}")
+
+        departements.take(5).forEach { dept ->
+            Log.d("QuizApp", "${dept.numero} - ${dept.nom} (${dept.region})")
         }
     }
 }
