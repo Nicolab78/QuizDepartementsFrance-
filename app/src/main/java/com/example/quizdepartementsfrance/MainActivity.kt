@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
         //    Log.d("QuizApp", "${dept.numero} - ${dept.nom} (${dept.region})")
         //}
 
-        // Test du générateur de quiz
+        // Test du générateur de quiz :)
         val quizGenerator = QuizGenerator()
 
         // Génère 3 questions pour tester
