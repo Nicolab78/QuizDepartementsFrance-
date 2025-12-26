@@ -1,55 +1,122 @@
 package com.example.quizdepartementsfrance
 
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.quizdepartementsfrance.data.DepartementsData
-import com.example.quizdepartementsfrance.quiz.QuizGenerator
 import com.example.quizdepartementsfrance.quiz.QuizManager
+import com.example.quizdepartementsfrance.quiz.Question
+import com.example.quizdepartementsfrance.quiz.QuizType
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var quizManager: QuizManager
+    private var currentQuestion: Question? = null
+
+    private lateinit var tvProgress: TextView
+    private lateinit var tvScore: TextView
+    private lateinit var tvQuestion: TextView
+    private lateinit var btnOption1: Button
+    private lateinit var btnOption2: Button
+    private lateinit var btnOption3: Button
+    private lateinit var btnOption4: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Test initial : afficher les départements
-        //val departements = DepartementsData.getAllDepartements()
-        //Log.d("QuizApp", "Nombre total de départements: ${departements.size}")
-        //departements.take(5).forEach { dept ->
-        //    Log.d("QuizApp", "${dept.numero} - ${dept.nom} (${dept.region})")
-        //}
+        val quizTypeName = intent.getStringExtra("QUIZ_TYPE") ?: QuizType.NUMERO_TO_NOM.name
+        val quizType = QuizType.valueOf(quizTypeName)
 
-        // Test du générateur de quiz :)
-        //val quizGenerator = QuizGenerator()
+        quizManager = QuizManager(totalQuestions = 10, quizType = quizType)
 
-        // Génère 3 questions pour tester
-        //repeat(3) { i ->
-        //    val question = quizGenerator.generateQuestion()
-        //    Log.d("QuizApp", "Question ${i + 1}:")
-        //    Log.d("QuizApp", "Quel est le département numéro ${question.departementNumero} ?")
-        //    Log.d("QuizApp", "Options: ${question.options}")
-        //    Log.d("QuizApp", "Réponse correcte: ${question.correctAnswer}")
-        //    Log.d("QuizApp", "---")
-        //}
+        tvProgress = findViewById(R.id.tvProgress)
+        tvScore = findViewById(R.id.tvScore)
+        tvQuestion = findViewById(R.id.tvQuestion)
+        btnOption1 = findViewById(R.id.btnOption1)
+        btnOption2 = findViewById(R.id.btnOption2)
+        btnOption3 = findViewById(R.id.btnOption3)
+        btnOption4 = findViewById(R.id.btnOption4)
 
-        val quizManager = QuizManager(totalQuestions = 5)
+        loadNextQuestion()
 
-        repeat(5) {
-            val question = quizManager.getNextQuestion()
-            if (question != null) {
-                Log.d("QuizApp", "Question ${quizManager.getCurrentQuestionNumber()}/${quizManager.getTotalQuestions()}")
-                Log.d("QuizApp", "Département n°${question.departementNumero}")
+        btnOption1.setOnClickListener { checkAnswer(btnOption1.text.toString()) }
+        btnOption2.setOnClickListener { checkAnswer(btnOption2.text.toString()) }
+        btnOption3.setOnClickListener { checkAnswer(btnOption3.text.toString()) }
+        btnOption4.setOnClickListener { checkAnswer(btnOption4.text.toString()) }
+    }
 
-                val userAnswer = question.options[0]
-                val isCorrect = quizManager.checkAnswer(userAnswer, question.correctAnswer)
+    private fun loadNextQuestion() {
+        currentQuestion = quizManager.getNextQuestion()
 
-                Log.d("QuizApp", "Réponse: $userAnswer - ${if (isCorrect) "✓ Correct" else "✗ Faux"}")
-                Log.d("QuizApp", "Score: ${quizManager.getScore()}/${quizManager.getCurrentQuestionNumber()} (${quizManager.getScorePercentage()}%)")
-                Log.d("QuizApp", "---")
-            }
+        if (currentQuestion == null) {
+            showFinalScore()
+            return
         }
 
-        Log.d("QuizApp", "QUIZ TERMINÉ!")
-        Log.d("QuizApp", "Score final: ${quizManager.getCorrectAnswers()}/${quizManager.getTotalQuestions()}")
+        val question = currentQuestion!!
+
+        tvProgress.text = "Question ${quizManager.getCurrentQuestionNumber()}/${quizManager.getTotalQuestions()}"
+        tvScore.text = "Score: ${quizManager.getScore()}"
+        tvQuestion.text = question.questionText
+
+        btnOption1.text = question.options[0]
+        btnOption2.text = question.options[1]
+        btnOption3.text = question.options[2]
+        btnOption4.text = question.options[3]
+
+        enableButtons()
+    }
+
+    private fun checkAnswer(userAnswer: String) {
+        val question = currentQuestion ?: return
+        val isCorrect = quizManager.checkAnswer(userAnswer, question.correctAnswer)
+
+        if (isCorrect) {
+            Toast.makeText(this, "✓ Correct !", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "✗ Faux ! C'était ${question.correctAnswer}", Toast.LENGTH_SHORT).show()
+        }
+
+        disableButtons()
+
+        btnOption1.postDelayed({
+            loadNextQuestion()
+        }, 1500)
+    }
+
+    private fun enableButtons() {
+        btnOption1.isEnabled = true
+        btnOption2.isEnabled = true
+        btnOption3.isEnabled = true
+        btnOption4.isEnabled = true
+    }
+
+    private fun disableButtons() {
+        btnOption1.isEnabled = false
+        btnOption2.isEnabled = false
+        btnOption3.isEnabled = false
+        btnOption4.isEnabled = false
+    }
+
+    private fun showFinalScore() {
+        tvQuestion.text = "Quiz terminé !"
+        tvProgress.text = "Résultat final"
+        tvScore.text = "Score: ${quizManager.getCorrectAnswers()}/${quizManager.getTotalQuestions()} (${quizManager.getScorePercentage()}%)"
+
+        btnOption1.text = "Retour au menu"
+        btnOption2.visibility = Button.GONE
+        btnOption3.visibility = Button.GONE
+        btnOption4.visibility = Button.GONE
+
+        btnOption1.isEnabled = true
+
+        btnOption1.setOnClickListener {
+            val intent = Intent(this, HomeActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
     }
 }
