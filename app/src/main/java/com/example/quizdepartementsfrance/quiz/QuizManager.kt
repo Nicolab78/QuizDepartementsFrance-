@@ -1,14 +1,17 @@
 package com.example.quizdepartementsfrance.quiz
 
-class QuizManager(private val totalQuestions: Int = 10) {
+class QuizManager(
+    private val totalQuestions: Int = 10,
+    quizType: QuizType
+) {
 
-    private val quizGenerator = QuizGenerator()
+    private val quizGenerator = QuizGenerator(quizType)
     private var currentQuestionNumber = 0
     private var correctAnswers = 0
     private var wrongAnswers = 0
 
     fun getNextQuestion(): Question? {
-        if (currentQuestionNumber >= totalQuestions){
+        if (currentQuestionNumber >= totalQuestions) {
             return null
         }
 
@@ -19,9 +22,9 @@ class QuizManager(private val totalQuestions: Int = 10) {
     fun checkAnswer(userAnswer: String, correctAnswer: String): Boolean {
         val isCorrect = userAnswer == correctAnswer
 
-        if(isCorrect){
+        if (isCorrect) {
             correctAnswers++
-        }else{
+        } else {
             wrongAnswers++
         }
 
@@ -32,6 +35,8 @@ class QuizManager(private val totalQuestions: Int = 10) {
 
     fun getCorrectAnswers(): Int = correctAnswers
 
+    fun getWrongAnswers(): Int = wrongAnswers
+
     fun getCurrentQuestionNumber(): Int = currentQuestionNumber
 
     fun getTotalQuestions(): Int = totalQuestions
@@ -39,7 +44,6 @@ class QuizManager(private val totalQuestions: Int = 10) {
     fun getScorePercentage(): Int {
         if (currentQuestionNumber == 0) return 0
         return (correctAnswers * 100) / currentQuestionNumber
-
     }
 
     fun isQuizFinished(): Boolean = currentQuestionNumber >= totalQuestions
@@ -50,6 +54,4 @@ class QuizManager(private val totalQuestions: Int = 10) {
         wrongAnswers = 0
         quizGenerator.reset()
     }
-
-
 }
